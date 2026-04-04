@@ -48,11 +48,11 @@ src/
 - `CORS_ORIGIN`
 - `JSON_BODY_LIMIT`
 - `LOG_LEVEL`
-| `npm run dev` | Start with nodemon (auto-reload) |
-| `npm start` | Start in production |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Run ESLint with auto-fix |
-| `npm run format` | Run Prettier |
+  | `npm run dev` | Start with nodemon (auto-reload) |
+  | `npm start` | Start in production |
+  | `npm run lint` | Run ESLint |
+  | `npm run lint:fix` | Run ESLint with auto-fix |
+  | `npm run format` | Run Prettier |
 
 ---
 

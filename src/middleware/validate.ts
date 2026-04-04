@@ -12,7 +12,10 @@ export const validate =
     const parsed = schema.safeParse(request[target]);
 
     if (!parsed.success) {
-      const fieldErrors = parsed.error.flatten().fieldErrors as Record<string, string[] | undefined>;
+      const fieldErrors = parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[] | undefined
+      >;
       const errors = Object.fromEntries(
         Object.entries(fieldErrors).flatMap(([key, value]) => {
           const message = value?.[0];

@@ -19,7 +19,8 @@ export const createAuthenticate = (
   env?: Env
 ) => {
   const verifyAccessToken = dependencies.verifyAccessToken ?? createSupabaseTokenVerifier(env);
-  const getProfileByUserId = dependencies.getProfileByUserId ?? createGetProfileByUserId(undefined, env);
+  const getProfileByUserId =
+    dependencies.getProfileByUserId ?? createGetProfileByUserId(undefined, env);
 
   return async (request: Request, _response: Response, next: NextFunction): Promise<void> => {
     const authorization = request.headers.authorization;
