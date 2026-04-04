@@ -3,11 +3,12 @@ name: CI
 on:
   push:
     branches:
-      - main
-      - develop
+      - master
+      - staging
   pull_request:
     branches:
-      - main
+      - master
+      - staging
 
 jobs:
   setup:
