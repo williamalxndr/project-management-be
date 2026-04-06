@@ -10,6 +10,7 @@ const testEnv: Env = {
   supabaseEnabled: true,
   supabaseConfigured: true,
   supabaseUrl: 'https://example.supabase.co',
+  supabasePublishableKey: 'publishable-key',
   supabaseServiceRoleKey: 'service-role-key',
   supabaseJwtAudience: 'authenticated',
   supabaseStorageBucket: 'task-evidence',
@@ -39,6 +40,10 @@ describe('swagger docs', () => {
     const paths = (result.body.paths as Record<string, unknown>) ?? {};
     expect(paths).toHaveProperty('/health');
     expect(paths).toHaveProperty('/ready');
+    expect(paths).toHaveProperty('/api/v1/auth/login');
+    expect(paths).toHaveProperty('/api/v1/auth/refresh');
+    expect(paths).toHaveProperty('/api/v1/auth/logout');
+    expect(paths).toHaveProperty('/api/v1/auth/me');
   });
 
   it('serves Swagger UI', async () => {

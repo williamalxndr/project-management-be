@@ -26,15 +26,82 @@
 
 ## Authentication
 
-Frontend sign-in is handled directly by Supabase Auth.
+Authentication is handled through backend-owned auth endpoints backed by Supabase Auth.
+Users are pre-registered in Supabase Auth and must also have a matching row in `profiles`.
+
+### POST /api/v1/auth/login
+
+Request body:
+
+```json
+{
+  "email": "manager@example.com",
+  "password": "secret-password"
+}
+```
+
+Success response:
+
+```json
+{
+  "success": true,
+  "message": "Authenticated session created",
+  "data": {
+    "accessToken": "eyJhbGciOi...",
+    "refreshToken": "refresh-token",
+    "tokenType": "bearer",
+    "expiresIn": 3600,
+    "expiresAt": "2026-04-07T16:00:00.000Z",
+    "user": {
+      "id": "fe19d71b-07d6-44d8-ad88-e398f7f7061f",
+      "email": "manager@example.com",
+      "name": "Manager",
+      "role": "MANAGER"
+    }
+  }
+}
+```
+
+### POST /api/v1/auth/refresh
+
+Request body:
+
+```json
+{
+  "refreshToken": "refresh-token"
+}
+```
+
+Returns the same session payload shape as login.
+
+### POST /api/v1/auth/logout
+
+Request body:
+
+```json
+{
+  "accessToken": "eyJhbGciOi...",
+  "refreshToken": "refresh-token"
+}
+```
+
+Success response:
+
+```json
+{
+  "success": true,
+  "message": "Authenticated session revoked",
+  "data": {
+    "signedOut": true
+  }
+}
+```
+
+### GET /api/v1/auth/me
 
 Protected backend requests must include:
 
 `Authorization: Bearer <supabase_access_token>`
-
-The backend verifies the Supabase access token and resolves the user's application role from the `profiles` table.
-
-### GET /api/v1/auth/me
 
 Returns the authenticated user profile resolved from `profiles`.
 
@@ -55,8 +122,9 @@ Success response:
 
 Failure modes:
 
-- `401` missing, malformed, invalid, or expired bearer token
-- `403` valid Supabase token with no matching `profiles` row
+- `400` invalid request body for login, refresh, or logout
+- `401` invalid credentials, invalid/expired session tokens, or missing/malformed bearer token
+- `403` valid Supabase identity with no matching `profiles` row
 - `503` Supabase auth unavailable in local development because backend configuration is missing
 
 ## Swagger
@@ -72,6 +140,9 @@ The Swagger document currently covers the routes that are actually implemented i
 
 Implemented now:
 
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/refresh`
+- `POST /api/v1/auth/logout`
 - `GET /health`
 - `GET /ready`
 - `GET /api/v1/auth/me`

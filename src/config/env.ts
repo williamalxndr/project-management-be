@@ -15,6 +15,7 @@ const rawEnvSchema = z.object({
     .optional()
     .transform((value) => (value === undefined ? undefined : value === 'true')),
   SUPABASE_URL: z.string().url().optional(),
+  SUPABASE_PUBLISHABLE_KEY: z.string().min(1).optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   SUPABASE_JWT_AUDIENCE: z.string().min(1).optional(),
   SUPABASE_STORAGE_BUCKET: z.string().min(1).default('task-evidence'),
@@ -31,6 +32,7 @@ export interface Env {
   supabaseEnabled: boolean;
   supabaseConfigured: boolean;
   supabaseUrl: string | null;
+  supabasePublishableKey: string | null;
   supabaseServiceRoleKey: string | null;
   supabaseJwtAudience?: string;
   supabaseStorageBucket: string;
@@ -58,7 +60,9 @@ export const parseEnv = (rawEnv: NodeJS.ProcessEnv): Env => {
   }
 
   const supabaseConfigured = Boolean(
-    parsed.data.SUPABASE_URL && parsed.data.SUPABASE_SERVICE_ROLE_KEY
+    parsed.data.SUPABASE_URL &&
+      parsed.data.SUPABASE_PUBLISHABLE_KEY &&
+      parsed.data.SUPABASE_SERVICE_ROLE_KEY
   );
   const supabaseEnabled =
     parsed.data.SUPABASE_ENABLED ??
@@ -69,6 +73,11 @@ export const parseEnv = (rawEnv: NodeJS.ProcessEnv): Env => {
 
     if (!parsed.data.SUPABASE_URL) {
       issues.SUPABASE_URL = 'SUPABASE_URL is required when Supabase is enabled';
+    }
+
+    if (!parsed.data.SUPABASE_PUBLISHABLE_KEY) {
+      issues.SUPABASE_PUBLISHABLE_KEY =
+        'SUPABASE_PUBLISHABLE_KEY is required when Supabase is enabled';
     }
 
     if (!parsed.data.SUPABASE_SERVICE_ROLE_KEY) {
@@ -85,6 +94,7 @@ export const parseEnv = (rawEnv: NodeJS.ProcessEnv): Env => {
     supabaseEnabled,
     supabaseConfigured,
     supabaseUrl: parsed.data.SUPABASE_URL ?? null,
+    supabasePublishableKey: parsed.data.SUPABASE_PUBLISHABLE_KEY ?? null,
     supabaseServiceRoleKey: parsed.data.SUPABASE_SERVICE_ROLE_KEY ?? null,
     supabaseJwtAudience: parsed.data.SUPABASE_JWT_AUDIENCE,
     supabaseStorageBucket: parsed.data.SUPABASE_STORAGE_BUCKET,

@@ -30,7 +30,7 @@ export const createReadinessService = ({
           },
           errors: {
             database:
-              'Set SUPABASE_ENABLED=true and configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to enable backend integrations',
+              'Set SUPABASE_ENABLED=true and configure SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, and SUPABASE_SERVICE_ROLE_KEY to enable backend integrations',
           },
         };
       }

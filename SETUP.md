@@ -6,6 +6,7 @@ Copy `.env.example` to `.env` and set:
 
 - `SUPABASE_ENABLED=true`
 - `SUPABASE_URL=https://<your-project-ref>.supabase.co`
+- `SUPABASE_PUBLISHABLE_KEY=<publishable or anon key>`
 - `SUPABASE_SERVICE_ROLE_KEY=<server-side secret or legacy service_role key>`
 - `SUPABASE_JWT_AUDIENCE=authenticated`
 - `SUPABASE_STORAGE_BUCKET=task-evidence`
@@ -31,6 +32,8 @@ In the Supabase dashboard:
 - enable the Email auth provider
 - create a Storage bucket named `task-evidence`
 - create your initial auth users manually
+
+This backend phase assumes users are pre-registered. There is no public register endpoint.
 
 ## 4. Insert Matching Application Profiles
 
@@ -60,5 +63,8 @@ Then verify:
 
 - `GET /health` returns `200`
 - `GET /ready` returns `200` when Supabase is configured correctly
+- `POST /api/v1/auth/login` returns access and refresh tokens for a pre-registered user
+- `POST /api/v1/auth/refresh` returns rotated session tokens
+- `POST /api/v1/auth/logout` revokes the current refresh token
 - `GET /api/v1/auth/me` returns the current user when called with `Authorization: Bearer <supabase_access_token>`
 - `GET /docs` opens Swagger UI for the implemented backend routes

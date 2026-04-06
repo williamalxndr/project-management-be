@@ -7,6 +7,7 @@ const validEnv = {
   NODE_ENV: 'test',
   PORT: '3000',
   SUPABASE_URL: 'https://example.supabase.co',
+  SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
   SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
   SUPABASE_JWT_AUDIENCE: 'authenticated',
   SUPABASE_STORAGE_BUCKET: 'task-evidence',
@@ -34,12 +35,28 @@ describe('parseEnv', () => {
         ...validEnv,
         NODE_ENV: 'development',
         SUPABASE_ENABLED: 'true',
+        SUPABASE_PUBLISHABLE_KEY: undefined,
         SUPABASE_SERVICE_ROLE_KEY: undefined,
       });
       throw new Error('parseEnv did not throw');
     } catch (error) {
       expect(error).toBeInstanceOf(EnvValidationError);
+      expect((error as EnvValidationError).issues.SUPABASE_PUBLISHABLE_KEY).toBeTruthy();
       expect((error as EnvValidationError).issues.SUPABASE_SERVICE_ROLE_KEY).toBeTruthy();
+    }
+  });
+
+  it('fails when the publishable key is missing while Supabase is enabled', () => {
+    try {
+      parseEnv({
+        ...validEnv,
+        SUPABASE_ENABLED: 'true',
+        SUPABASE_PUBLISHABLE_KEY: undefined,
+      });
+      throw new Error('parseEnv did not throw');
+    } catch (error) {
+      expect(error).toBeInstanceOf(EnvValidationError);
+      expect((error as EnvValidationError).issues.SUPABASE_PUBLISHABLE_KEY).toBeTruthy();
     }
   });
 
@@ -48,11 +65,13 @@ describe('parseEnv', () => {
       parseEnv({
         ...validEnv,
         NODE_ENV: 'production',
+        SUPABASE_PUBLISHABLE_KEY: undefined,
         SUPABASE_SERVICE_ROLE_KEY: undefined,
       });
       throw new Error('parseEnv did not throw');
     } catch (error) {
       expect(error).toBeInstanceOf(EnvValidationError);
+      expect((error as EnvValidationError).issues.SUPABASE_PUBLISHABLE_KEY).toBeTruthy();
       expect((error as EnvValidationError).issues.SUPABASE_SERVICE_ROLE_KEY).toBeTruthy();
     }
   });

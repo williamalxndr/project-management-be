@@ -10,6 +10,7 @@ const testEnv: Env = {
   supabaseEnabled: true,
   supabaseConfigured: true,
   supabaseUrl: 'https://example.supabase.co',
+  supabasePublishableKey: 'publishable-key',
   supabaseServiceRoleKey: 'service-role-key',
   supabaseJwtAudience: 'authenticated',
   supabaseStorageBucket: 'task-evidence',
@@ -138,6 +139,7 @@ describe('app routes', () => {
       supabaseEnabled: false,
       supabaseConfigured: false,
       supabaseUrl: null,
+      supabasePublishableKey: null,
       supabaseServiceRoleKey: null,
     };
 

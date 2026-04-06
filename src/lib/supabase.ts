@@ -2,6 +2,19 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import { getEnv, type Env } from '../config/env.js';
 
+export const createSupabaseAuthClient = (env: Env = getEnv()): SupabaseClient => {
+  if (!env.supabaseEnabled || !env.supabaseUrl || !env.supabasePublishableKey) {
+    throw new Error('Supabase auth client is unavailable because backend auth is disabled');
+  }
+
+  return createClient(env.supabaseUrl, env.supabasePublishableKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+};
+
 export const createSupabaseAdminClient = (env: Env = getEnv()): SupabaseClient => {
   if (!env.supabaseEnabled || !env.supabaseUrl || !env.supabaseServiceRoleKey) {
     throw new Error('Supabase admin client is unavailable because Supabase is disabled');

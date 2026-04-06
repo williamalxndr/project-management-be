@@ -7,6 +7,14 @@ import morgan from 'morgan';
 import { getEnv, type Env } from './config/env.js';
 import { registerSwagger } from './docs/openapi.js';
 import { createReadinessService, type ReadinessService } from './lib/readiness.js';
+import {
+  createGetProfileByUserId,
+  createLogoutSession,
+  createRefreshAuthSession,
+  createSignInWithPassword,
+  createSupabaseTokenVerifier,
+  type AuthServiceDependencies,
+} from './modules/auth/auth.service.js';
 import { createAuthenticate, type AuthMiddlewareDependencies } from './middleware/authenticate.js';
 import { authorize } from './middleware/authorize.js';
 import { errorHandler } from './middleware/error-handler.js';
@@ -17,7 +25,8 @@ import { sendError, sendSuccess } from './shared/http.js';
 export interface AppFactoryOptions {
   env?: Env;
   readinessService?: ReadinessService;
-  authDependencies?: Partial<AuthMiddlewareDependencies>;
+  authDependencies?: Partial<AuthMiddlewareDependencies & Omit<AuthServiceDependencies, 'verifyAccessToken' | 'getProfileByUserId'>> &
+    Partial<Pick<AuthServiceDependencies, 'verifyAccessToken' | 'getProfileByUserId'>>;
 }
 
 export const createApp = ({
@@ -26,7 +35,22 @@ export const createApp = ({
   authDependencies = {},
 }: AppFactoryOptions = {}): Express => {
   const app = express();
-  const authenticate = createAuthenticate(authDependencies, env);
+  const verifyAccessToken =
+    authDependencies.verifyAccessToken ?? createSupabaseTokenVerifier(env);
+  const getProfileByUserId =
+    authDependencies.getProfileByUserId ?? createGetProfileByUserId(undefined, env);
+  const signInWithPassword =
+    authDependencies.signInWithPassword ?? createSignInWithPassword(env);
+  const refreshAuthSession =
+    authDependencies.refreshAuthSession ?? createRefreshAuthSession(env);
+  const logoutSession = authDependencies.logoutSession ?? createLogoutSession(env);
+  const authenticate = createAuthenticate(
+    {
+      verifyAccessToken,
+      getProfileByUserId,
+    },
+    env
+  );
 
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
@@ -56,7 +80,16 @@ export const createApp = ({
   });
 
   registerSwagger(app, env);
-  app.use('/api/v1', buildApiRouter({ authenticate }));
+  app.use(
+    '/api/v1',
+    buildApiRouter({
+      authenticate,
+      signInWithPassword,
+      refreshAuthSession,
+      logoutSession,
+      getProfileByUserId,
+    })
+  );
 
   if (env.nodeEnv === 'test') {
     app.get('/_test/protected', authenticate, (request: Request, response: Response) => {
