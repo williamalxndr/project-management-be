@@ -56,7 +56,7 @@ export const createApp = ({
   });
 
   registerSwagger(app, env);
-  app.use('/api/v1', buildApiRouter());
+  app.use('/api/v1', buildApiRouter({ authenticate }));
 
   if (env.nodeEnv === 'test') {
     app.get('/_test/protected', authenticate, (request: Request, response: Response) => {

@@ -33,6 +33,7 @@ src/
 
 - `GET /health` reports process health.
 - `GET /ready` verifies environment configuration and Supabase reachability.
+- `GET /api/v1/auth/me` returns the authenticated user resolved from `profiles`.
 - Future business routes live under `/api/v1`.
 - Frontend handles sign-in with Supabase Auth and sends bearer tokens to Express.
 - Express resolves the application role from the `profiles` table and enforces authorization.
@@ -41,6 +42,7 @@ src/
 
 - `NODE_ENV`
 - `PORT`
+- `SUPABASE_ENABLED`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_JWT_AUDIENCE`
@@ -58,6 +60,6 @@ src/
 
 ## Database
 
-Schema is defined in `/database/schema.sql`. Tables: `users`, `projects`, `tasks`, `task_progress`, `approvals`.
+Schema is defined in `/database/schema.sql`. Tables: `profiles`, `projects`, `tasks`, `task_progress`, `approvals`.
 
-The backend uses the Supabase **service role key** (not the anon key) to bypass Row Level Security. Authorization is handled by Express middleware (`auth.js` + `authorize.js`).
+The backend uses the Supabase **service role key** (not the anon key) to bypass Row Level Security. Authentication is handled by bearer token verification plus profile lookup, and authorization is handled by Express middleware (`authenticate.ts` + `authorize.ts`).
