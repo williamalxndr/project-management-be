@@ -1,18 +1,15 @@
 import type { NextFunction, Request, Response } from 'express';
 
 import type { Env } from '../config/env.js';
-import {
-  createGetProfileByUserId,
-  createSupabaseTokenVerifier,
-  type GetProfileByUserId,
-  type VerifyAccessToken,
-} from '../modules/auth/auth.service.js';
+import { createGetProfileByUserId } from '../modules/auth/auth.profile.service.js';
+import { createSupabaseTokenVerifier } from '../modules/auth/auth.token.service.js';
+import type { AuthServiceDependencies } from '../modules/auth/auth.types.js';
 import { HttpError } from '../shared/errors.js';
 
-export interface AuthMiddlewareDependencies {
-  verifyAccessToken: VerifyAccessToken;
-  getProfileByUserId: GetProfileByUserId;
-}
+export type AuthMiddlewareDependencies = Pick<
+  AuthServiceDependencies,
+  'verifyAccessToken' | 'getProfileByUserId'
+>;
 
 export const createAuthenticate = (
   dependencies: Partial<AuthMiddlewareDependencies> = {},

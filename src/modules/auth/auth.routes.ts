@@ -4,11 +4,12 @@ import { validate } from '../../middleware/validate.js';
 import { HttpError } from '../../shared/errors.js';
 import { sendSuccess } from '../../shared/http.js';
 import type {
+  AuthenticatedSessionResponse,
   GetProfileByUserId,
   LogoutSession,
   RefreshAuthSession,
   SignInWithPassword,
-} from './auth.service.js';
+} from './auth.types.js';
 import {
   loginRequestSchema,
   logoutRequestSchema,
@@ -34,13 +35,8 @@ const buildAuthResponseData = (
     expiresIn: number;
     expiresAt: string;
   },
-  user: {
-    id: string;
-    email: string | null;
-    name: string | null;
-    role: string;
-  }
-) => ({
+  user: AuthenticatedSessionResponse['user']
+): AuthenticatedSessionResponse => ({
   accessToken: session.accessToken,
   refreshToken: session.refreshToken,
   tokenType: session.tokenType,

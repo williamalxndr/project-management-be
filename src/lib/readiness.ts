@@ -1,6 +1,7 @@
 import { getEnv, type Env } from '../config/env.js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { AUTH_UNAVAILABLE_ENV_HINT } from '../modules/auth/auth.errors.js';
 import { getSupabaseAdminClient } from './supabase.js';
 
 import type { ReadinessReport } from '../shared/types.js';
@@ -29,8 +30,7 @@ export const createReadinessService = ({
             storage: 'disabled',
           },
           errors: {
-            database:
-              'Set SUPABASE_ENABLED=true and configure SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, and SUPABASE_SERVICE_ROLE_KEY to enable backend integrations',
+            database: `${AUTH_UNAVAILABLE_ENV_HINT} to enable backend integrations`,
           },
         };
       }

@@ -7,15 +7,9 @@ import morgan from 'morgan';
 import { getEnv, type Env } from './config/env.js';
 import { registerSwagger } from './docs/openapi.js';
 import { createReadinessService, type ReadinessService } from './lib/readiness.js';
-import {
-  createGetProfileByUserId,
-  createLogoutSession,
-  createRefreshAuthSession,
-  createSignInWithPassword,
-  createSupabaseTokenVerifier,
-  type AuthServiceDependencies,
-} from './modules/auth/auth.service.js';
 import { createAuthenticate, type AuthMiddlewareDependencies } from './middleware/authenticate.js';
+import { createAuthDependencies } from './modules/auth/auth.dependencies.js';
+import type { AuthDependencyOverrides } from './modules/auth/auth.types.js';
 import { authorize } from './middleware/authorize.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
@@ -25,8 +19,7 @@ import { sendError, sendSuccess } from './shared/http.js';
 export interface AppFactoryOptions {
   env?: Env;
   readinessService?: ReadinessService;
-  authDependencies?: Partial<AuthMiddlewareDependencies & Omit<AuthServiceDependencies, 'verifyAccessToken' | 'getProfileByUserId'>> &
-    Partial<Pick<AuthServiceDependencies, 'verifyAccessToken' | 'getProfileByUserId'>>;
+  authDependencies?: AuthDependencyOverrides;
 }
 
 export const createApp = ({
@@ -35,21 +28,16 @@ export const createApp = ({
   authDependencies = {},
 }: AppFactoryOptions = {}): Express => {
   const app = express();
-  const verifyAccessToken =
-    authDependencies.verifyAccessToken ?? createSupabaseTokenVerifier(env);
-  const getProfileByUserId =
-    authDependencies.getProfileByUserId ?? createGetProfileByUserId(undefined, env);
-  const signInWithPassword =
-    authDependencies.signInWithPassword ?? createSignInWithPassword(env);
-  const refreshAuthSession =
-    authDependencies.refreshAuthSession ?? createRefreshAuthSession(env);
-  const logoutSession = authDependencies.logoutSession ?? createLogoutSession(env);
+  const resolvedAuthDependencies = createAuthDependencies({
+    env,
+    overrides: authDependencies,
+  });
   const authenticate = createAuthenticate(
     {
-      verifyAccessToken,
-      getProfileByUserId,
-    },
-    env
+      verifyAccessToken: resolvedAuthDependencies.verifyAccessToken,
+      getProfileByUserId: resolvedAuthDependencies.getProfileByUserId,
+    } satisfies AuthMiddlewareDependencies,
+    env,
   );
 
   app.disable('x-powered-by');
@@ -84,10 +72,10 @@ export const createApp = ({
     '/api/v1',
     buildApiRouter({
       authenticate,
-      signInWithPassword,
-      refreshAuthSession,
-      logoutSession,
-      getProfileByUserId,
+      signInWithPassword: resolvedAuthDependencies.signInWithPassword,
+      refreshAuthSession: resolvedAuthDependencies.refreshAuthSession,
+      logoutSession: resolvedAuthDependencies.logoutSession,
+      getProfileByUserId: resolvedAuthDependencies.getProfileByUserId,
     })
   );
 
