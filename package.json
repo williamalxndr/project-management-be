@@ -27,12 +27,14 @@
   "license": "ISC",
   "dependencies": {
     "@supabase/supabase-js": "^2.101.1",
+    "@types/swagger-ui-express": "^4.1.8",
     "cors": "^2.8.5",
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
     "jose": "^6.1.0",
     "morgan": "^1.10.0",
+    "swagger-ui-express": "^5.0.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {

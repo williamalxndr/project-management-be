@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import { getEnv, type Env } from './config/env.js';
+import { registerSwagger } from './docs/openapi.js';
 import { createReadinessService, type ReadinessService } from './lib/readiness.js';
 import { createAuthenticate, type AuthMiddlewareDependencies } from './middleware/authenticate.js';
 import { authorize } from './middleware/authorize.js';
@@ -54,6 +55,7 @@ export const createApp = ({
     return sendError(response, report.message, report.errors ?? null, 503);
   });
 
+  registerSwagger(app, env);
   app.use('/api/v1', buildApiRouter());
 
   if (env.nodeEnv === 'test') {
