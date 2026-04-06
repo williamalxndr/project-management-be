@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { createApp } from '../src/app.js';
 import type { Env } from '../src/config/env.js';
+import { LEGACY_PROFILE_ROLE_HINT, LEGACY_PROFILE_ROLE_MESSAGE } from '../src/modules/auth/auth.errors.js';
 import { HttpError } from '../src/shared/errors.js';
 import { invokeApp } from './support/invoke.js';
 
@@ -146,6 +147,45 @@ describe('auth routes', () => {
 
     expect(result.status).toBe(403);
     expect(result.body.message).toBe('User profile not found');
+  });
+
+  it('returns 503 when login resolves a legacy manager profile that requires migration', async () => {
+    const app = createApp({
+      env: testEnv,
+      authDependencies: {
+        signInWithPassword: vi.fn().mockResolvedValue({
+          userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
+          email: 'admin@example.com',
+          accessToken: 'access-token',
+          refreshToken: 'refresh-token',
+          tokenType: 'bearer',
+          expiresIn: 3600,
+          expiresAt: '2026-04-07T16:00:00.000Z',
+        }),
+        getProfileByUserId: vi
+          .fn()
+          .mockRejectedValue(
+            new HttpError(LEGACY_PROFILE_ROLE_MESSAGE, 503, {
+              role: LEGACY_PROFILE_ROLE_HINT,
+            })
+          ),
+      },
+    });
+
+    const result = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/auth/login',
+      body: {
+        email: 'admin@example.com',
+        password: 'secret-password',
+      },
+    });
+
+    expect(result.status).toBe(503);
+    expect(result.body.message).toBe(LEGACY_PROFILE_ROLE_MESSAGE);
+    expect(result.body.errors).toEqual({
+      role: LEGACY_PROFILE_ROLE_HINT,
+    });
   });
 
   it('returns 503 for login when Supabase auth is disabled locally', async () => {
@@ -302,6 +342,44 @@ describe('auth routes', () => {
     expect(result.body.message).toBe('User profile not found');
   });
 
+  it('returns 503 when refresh resolves a legacy manager profile that requires migration', async () => {
+    const app = createApp({
+      env: testEnv,
+      authDependencies: {
+        refreshAuthSession: vi.fn().mockResolvedValue({
+          userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
+          email: 'admin@example.com',
+          accessToken: 'new-access-token',
+          refreshToken: 'new-refresh-token',
+          tokenType: 'bearer',
+          expiresIn: 3600,
+          expiresAt: '2026-04-07T17:00:00.000Z',
+        }),
+        getProfileByUserId: vi
+          .fn()
+          .mockRejectedValue(
+            new HttpError(LEGACY_PROFILE_ROLE_MESSAGE, 503, {
+              role: LEGACY_PROFILE_ROLE_HINT,
+            })
+          ),
+      },
+    });
+
+    const result = await invokeApp(app, {
+      method: 'POST',
+      path: '/api/v1/auth/refresh',
+      body: {
+        refreshToken: 'refresh-token',
+      },
+    });
+
+    expect(result.status).toBe(503);
+    expect(result.body.message).toBe(LEGACY_PROFILE_ROLE_MESSAGE);
+    expect(result.body.errors).toEqual({
+      role: LEGACY_PROFILE_ROLE_HINT,
+    });
+  });
+
   it('returns 400 when the logout body is invalid', async () => {
     const app = createApp({
       env: testEnv,
@@ -450,6 +528,36 @@ describe('auth routes', () => {
 
     expect(result.status).toBe(403);
     expect(result.body.message).toBe('User profile not found');
+  });
+
+  it('returns 503 when the Supabase user has a legacy manager profile that requires migration', async () => {
+    const app = createApp({
+      env: testEnv,
+      authDependencies: {
+        verifyAccessToken: vi.fn().mockResolvedValue({
+          userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
+          email: 'admin@example.com',
+        }),
+        getProfileByUserId: vi
+          .fn()
+          .mockRejectedValue(
+            new HttpError(LEGACY_PROFILE_ROLE_MESSAGE, 503, {
+              role: LEGACY_PROFILE_ROLE_HINT,
+            })
+          ),
+      },
+    });
+
+    const result = await invokeApp(app, {
+      path: '/api/v1/auth/me',
+      headers: { authorization: 'Bearer valid-token' },
+    });
+
+    expect(result.status).toBe(503);
+    expect(result.body.message).toBe(LEGACY_PROFILE_ROLE_MESSAGE);
+    expect(result.body.errors).toEqual({
+      role: LEGACY_PROFILE_ROLE_HINT,
+    });
   });
 
   it('returns 200 with the authenticated user profile', async () => {

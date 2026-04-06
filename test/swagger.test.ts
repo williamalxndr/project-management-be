@@ -44,6 +44,23 @@ describe('swagger docs', () => {
     expect(paths).toHaveProperty('/api/v1/auth/refresh');
     expect(paths).toHaveProperty('/api/v1/auth/logout');
     expect(paths).toHaveProperty('/api/v1/auth/me');
+    expect(result.body).toMatchObject({
+      paths: {
+        '/api/v1/auth/login': {
+          post: {
+            requestBody: {
+              content: {
+                'application/json': {
+                  example: {
+                    email: 'admin@example.com',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
   });
 
   it('serves Swagger UI', async () => {

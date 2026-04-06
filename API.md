@@ -35,7 +35,7 @@ Request body:
 
 ```json
 {
-  "email": "manager@example.com",
+  "email": "admin@example.com",
   "password": "secret-password"
 }
 ```
@@ -54,9 +54,9 @@ Success response:
     "expiresAt": "2026-04-07T16:00:00.000Z",
     "user": {
       "id": "fe19d71b-07d6-44d8-ad88-e398f7f7061f",
-      "email": "manager@example.com",
-      "name": "Manager",
-      "role": "MANAGER"
+      "email": "admin@example.com",
+      "name": "Admin",
+      "role": "ADMIN"
     }
   }
 }
@@ -113,9 +113,9 @@ Success response:
   "message": "Authenticated user retrieved",
   "data": {
     "id": "fe19d71b-07d6-44d8-ad88-e398f7f7061f",
-    "email": "manager@example.com",
-    "name": "Manager",
-    "role": "MANAGER"
+    "email": "admin@example.com",
+    "name": "Admin",
+    "role": "ADMIN"
   }
 }
 ```
@@ -126,6 +126,7 @@ Failure modes:
 - `401` invalid credentials, invalid/expired session tokens, or missing/malformed bearer token
 - `403` valid Supabase identity with no matching `profiles` row
 - `503` Supabase auth unavailable in local development because backend configuration is missing
+- `503` legacy `MANAGER` profiles detected and must be migrated to `ADMIN`
 
 ## Swagger
 
@@ -149,6 +150,6 @@ Implemented now:
 
 Planned next:
 
-- project and task creation for authenticated `ADMIN` or `MANAGER` users
+- project and task creation for authenticated `ADMIN` users
 - progress submission for authenticated `SUPERVISOR` users
-- approvals and rejections for authenticated `MANAGER` users
+- approvals and rejections for authenticated `ADMIN` users

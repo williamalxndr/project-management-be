@@ -6,9 +6,21 @@ export const LOCAL_AUTH_UNAVAILABLE_MESSAGE =
 export const AUTH_UNAVAILABLE_ENV_HINT =
   'Set SUPABASE_ENABLED=true and configure SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, and SUPABASE_SERVICE_ROLE_KEY';
 
+export const LEGACY_PROFILE_ROLE_MESSAGE =
+  'Authentication is unavailable because legacy MANAGER profiles must be migrated';
+
+export const LEGACY_PROFILE_ROLE_HINT =
+  'Run database/migrations/20260407_replace_manager_with_admin.sql in Supabase SQL Editor to convert MANAGER profiles to ADMIN';
+
 export const getLocalAuthUnavailableError = (): HttpError => {
   return new HttpError(LOCAL_AUTH_UNAVAILABLE_MESSAGE, 503, {
     auth: AUTH_UNAVAILABLE_ENV_HINT,
+  });
+};
+
+export const getLegacyProfileRoleError = (): HttpError => {
+  return new HttpError(LEGACY_PROFILE_ROLE_MESSAGE, 503, {
+    role: LEGACY_PROFILE_ROLE_HINT,
   });
 };
 

@@ -44,11 +44,13 @@ Example:
 ```sql
 insert into public.profiles (id, email, name, role)
 values
-  ('<auth-user-uuid>', 'manager@example.com', 'Manager User', 'MANAGER'),
+  ('<auth-user-uuid>', 'admin@example.com', 'Admin User', 'ADMIN'),
   ('<auth-user-uuid>', 'supervisor@example.com', 'Supervisor User', 'SUPERVISOR');
 ```
 
 The backend treats `profiles.role` as the source of truth for authorization. A valid Supabase token without a matching `profiles` row is rejected with `403`.
+
+If you are upgrading from an older database that still contains `MANAGER` profiles, run `../database/migrations/20260407_replace_manager_with_admin.sql` in Supabase SQL Editor before testing auth. The backend returns `503` until those legacy rows are migrated.
 
 ## 5. Verify Locally
 
@@ -56,8 +58,14 @@ From `backend/`:
 
 ```bash
 npm install
+npm run seed:swagger-auth
 npm run dev
 ```
+
+The default seeded Swagger login is:
+
+- email: `admin@example.com`
+- password: `Password123!`
 
 Then verify:
 

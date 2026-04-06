@@ -7,7 +7,12 @@ import {
   type OpenApiSchema,
 } from '../../docs/openapi.shared.js';
 
-import { AUTH_UNAVAILABLE_ENV_HINT, LOCAL_AUTH_UNAVAILABLE_MESSAGE } from './auth.errors.js';
+import {
+  AUTH_UNAVAILABLE_ENV_HINT,
+  LEGACY_PROFILE_ROLE_HINT,
+  LEGACY_PROFILE_ROLE_MESSAGE,
+  LOCAL_AUTH_UNAVAILABLE_MESSAGE,
+} from './auth.errors.js';
 
 export interface AuthOpenApiSection {
   tags: Array<{
@@ -144,6 +149,12 @@ const createAuthUnavailableResponse = () => {
   );
 };
 
+const createLegacyRoleMigrationResponse = () => {
+  return createErrorResponse('Legacy profile role requires migration', LEGACY_PROFILE_ROLE_MESSAGE, {
+    role: LEGACY_PROFILE_ROLE_HINT,
+  });
+};
+
 export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
   tags: [
     {
@@ -185,7 +196,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
           }),
           401: createErrorResponse('Invalid credentials', 'Invalid email or password'),
           403: createErrorResponse('User profile not found', 'User profile not found'),
-          503: createAuthUnavailableResponse(),
+          503: createLegacyRoleMigrationResponse(),
         },
       },
     },
@@ -221,7 +232,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
             'Invalid or expired refresh token'
           ),
           403: createErrorResponse('User profile not found', 'User profile not found'),
-          503: createAuthUnavailableResponse(),
+          503: createLegacyRoleMigrationResponse(),
         },
       },
     },
@@ -277,7 +288,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
           ),
           401: createErrorResponse('Authentication required', 'Authentication required'),
           403: createErrorResponse('User profile not found', 'User profile not found'),
-          503: createAuthUnavailableResponse(),
+          503: createLegacyRoleMigrationResponse(),
         },
       },
     },

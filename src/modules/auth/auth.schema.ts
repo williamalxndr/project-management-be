@@ -29,7 +29,15 @@ export const profileSchema = z.object({
   role: appRoleSchema,
 });
 
+export const rawProfileSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email().nullable().optional().default(null),
+  name: z.string().nullable().optional().default(null),
+  role: z.string(),
+});
+
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 export type RefreshSessionRequest = z.infer<typeof refreshSessionRequestSchema>;
 export type LogoutRequest = z.infer<typeof logoutRequestSchema>;
 export type UserProfile = z.infer<typeof profileSchema>;
+export type RawUserProfile = z.infer<typeof rawProfileSchema>;

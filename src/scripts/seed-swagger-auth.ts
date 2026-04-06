@@ -1,15 +1,89 @@
+import { pathToFileURL } from 'node:url';
+
+import type { Env } from '../config/env.js';
 import { getEnv } from '../config/env.js';
 import { createSupabaseAdminClient } from '../lib/supabase.js';
 import { APP_ROLES, type AppRole } from '../shared/types.js';
 
-const DEFAULT_EMAIL = 'swagger.admin@example.com';
-const DEFAULT_PASSWORD = 'Password123!';
-const DEFAULT_NAME = 'Swagger Admin';
-const DEFAULT_ROLE: AppRole = 'ADMIN';
-const LEGACY_DEFAULT_EMAIL = 'swagger.manager@example.com';
+export const DEFAULT_EMAIL = 'admin@example.com';
+export const DEFAULT_PASSWORD = 'Password123!';
+export const DEFAULT_NAME = 'Admin';
+export const DEFAULT_ROLE: AppRole = 'ADMIN';
+export const LEGACY_DEFAULT_EMAILS = ['swagger.manager@example.com', 'swagger.admin@example.com'];
 
-const resolveRole = (): AppRole => {
-  const rawRole = process.env.SEED_AUTH_ROLE;
+type SeedAuthUser = {
+  id: string;
+  email?: string | null;
+};
+
+type SeedAdminApi = {
+  listUsers: (options: { page: number; perPage: number }) => Promise<{
+    data: { users: SeedAuthUser[] };
+    error: { message: string } | null;
+  }>;
+  updateUserById: (
+    id: string,
+    payload: {
+      email: string;
+      password: string;
+      email_confirm: boolean;
+      user_metadata: { name: string };
+    }
+  ) => Promise<{
+    data: { user: SeedAuthUser | null };
+    error: { message: string } | null;
+  }>;
+  createUser: (payload: {
+    email: string;
+    password: string;
+    email_confirm: boolean;
+    user_metadata: { name: string };
+  }) => Promise<{
+    data: { user: SeedAuthUser | null };
+    error: { message: string } | null;
+  }>;
+  deleteUser: (id: string) => Promise<{
+    error: { message: string } | null;
+  }>;
+};
+
+type SeedProfilesApi = {
+  upsert: (
+    values: {
+      id: string;
+      email: string;
+      name: string;
+      role: AppRole;
+    },
+    options: { onConflict: string }
+  ) => Promise<{
+    error: { message: string } | null;
+  }>;
+};
+
+export interface SeedSwaggerAuthClient {
+  auth: {
+    admin: SeedAdminApi;
+  };
+  from: (table: 'profiles') => SeedProfilesApi;
+}
+
+export interface SeedSwaggerAuthDependencies {
+  env?: Env;
+  processEnv?: NodeJS.ProcessEnv;
+  supabase?: SeedSwaggerAuthClient;
+  log?: (message: string) => void;
+}
+
+export interface SeedSwaggerAuthResult {
+  email: string;
+  password: string;
+  role: AppRole;
+  userId: string;
+}
+
+export const resolveRole = (processEnv: NodeJS.ProcessEnv = process.env): AppRole => {
+  const rawRole = processEnv.SEED_AUTH_ROLE;
 
   if (!rawRole) {
     return DEFAULT_ROLE;
@@ -25,9 +99,9 @@ const resolveRole = (): AppRole => {
 };
 
 const findUserByEmail = async (
-  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  supabase: SeedSwaggerAuthClient,
   email: string
-) => {
+): Promise<SeedAuthUser | null> => {
   let page = 1;
 
   while (true) {
@@ -54,30 +128,45 @@ const findUserByEmail = async (
   }
 };
 
-const main = async (): Promise<void> => {
-  const env = getEnv();
+const removeLegacyDefaultUsers = async (
+  supabase: SeedSwaggerAuthClient,
+  email: string
+): Promise<void> => {
+  if (email !== DEFAULT_EMAIL) {
+    return;
+  }
 
+  for (const legacyEmail of LEGACY_DEFAULT_EMAILS) {
+    const legacyUser = await findUserByEmail(supabase, legacyEmail);
+
+    if (!legacyUser) {
+      continue;
+    }
+
+    const { error } = await supabase.auth.admin.deleteUser(legacyUser.id);
+
+    if (error) {
+      throw new Error(`Unable to remove legacy Swagger demo account: ${error.message}`);
+    }
+  }
+};
+
+export const seedSwaggerAuth = async ({
+  env = getEnv(),
+  processEnv = process.env,
+  supabase = createSupabaseAdminClient(env) as unknown as SeedSwaggerAuthClient,
+  log = console.log,
+}: SeedSwaggerAuthDependencies = {}): Promise<SeedSwaggerAuthResult> => {
   if (!env.supabaseEnabled) {
     throw new Error('Supabase is disabled. Set SUPABASE_ENABLED=true before seeding.');
   }
 
-  const email = (process.env.SEED_AUTH_EMAIL ?? DEFAULT_EMAIL).trim().toLowerCase();
-  const password = process.env.SEED_AUTH_PASSWORD ?? DEFAULT_PASSWORD;
-  const name = (process.env.SEED_AUTH_NAME ?? DEFAULT_NAME).trim();
-  const role = resolveRole();
-  const supabase = createSupabaseAdminClient(env);
+  const email = (processEnv.SEED_AUTH_EMAIL ?? DEFAULT_EMAIL).trim().toLowerCase();
+  const password = processEnv.SEED_AUTH_PASSWORD ?? DEFAULT_PASSWORD;
+  const name = (processEnv.SEED_AUTH_NAME ?? DEFAULT_NAME).trim();
+  const role = resolveRole(processEnv);
 
-  if (email === DEFAULT_EMAIL) {
-    const legacyUser = await findUserByEmail(supabase, LEGACY_DEFAULT_EMAIL);
-
-    if (legacyUser) {
-      const { error } = await supabase.auth.admin.deleteUser(legacyUser.id);
-
-      if (error) {
-        throw new Error(`Unable to remove legacy Swagger manager account: ${error.message}`);
-      }
-    }
-  }
+  await removeLegacyDefaultUsers(supabase, email);
 
   let user = await findUserByEmail(supabase, email);
 
@@ -133,15 +222,32 @@ const main = async (): Promise<void> => {
     throw new Error(`Unable to upsert profile row: ${profileError.message}`);
   }
 
-  console.log('Seeded Swagger auth account');
-  console.log(`email=${email}`);
-  console.log(`password=${password}`);
-  console.log(`role=${role}`);
-  console.log(`userId=${user.id}`);
+  log('Seeded Swagger auth account');
+  log(`email=${email}`);
+  log(`password=${password}`);
+  log(`role=${role}`);
+  log(`userId=${user.id}`);
+
+  return {
+    email,
+    password,
+    role,
+    userId: user.id,
+  };
 };
 
-main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
-  process.exitCode = 1;
-});
+export const main = async (): Promise<void> => {
+  await seedSwaggerAuth();
+};
+
+const isMainModule = process.argv[1]
+  ? import.meta.url === pathToFileURL(process.argv[1]).href
+  : false;
+
+if (isMainModule) {
+  main().catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
+    process.exitCode = 1;
+  });
+}
