@@ -30,7 +30,7 @@ describe('auth routes', () => {
       method: 'POST',
       path: '/api/v1/auth/login',
       body: {
-        email: 'manager@example.com',
+        email: 'admin@example.com',
         password: '',
       },
     });
@@ -48,7 +48,7 @@ describe('auth routes', () => {
       authDependencies: {
         signInWithPassword: vi.fn().mockResolvedValue({
           userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
+          email: 'admin@example.com',
           accessToken: 'access-token',
           refreshToken: 'refresh-token',
           tokenType: 'bearer',
@@ -57,9 +57,9 @@ describe('auth routes', () => {
         }),
         getProfileByUserId: vi.fn().mockResolvedValue({
           id: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
-          name: 'Manager',
-          role: 'MANAGER',
+          email: 'admin@example.com',
+          name: 'Admin',
+          role: 'ADMIN',
         }),
       },
     });
@@ -68,7 +68,7 @@ describe('auth routes', () => {
       method: 'POST',
       path: '/api/v1/auth/login',
       body: {
-        email: 'manager@example.com',
+        email: 'admin@example.com',
         password: 'secret-password',
       },
     });
@@ -85,9 +85,9 @@ describe('auth routes', () => {
         expiresAt: '2026-04-07T16:00:00.000Z',
         user: {
           id: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
-          name: 'Manager',
-          role: 'MANAGER',
+          email: 'admin@example.com',
+          name: 'Admin',
+          role: 'ADMIN',
         },
       },
     });
@@ -97,7 +97,9 @@ describe('auth routes', () => {
     const app = createApp({
       env: testEnv,
       authDependencies: {
-        signInWithPassword: vi.fn().mockRejectedValue(new HttpError('Invalid email or password', 401)),
+        signInWithPassword: vi
+          .fn()
+          .mockRejectedValue(new HttpError('Invalid email or password', 401)),
       },
     });
 
@@ -105,7 +107,7 @@ describe('auth routes', () => {
       method: 'POST',
       path: '/api/v1/auth/login',
       body: {
-        email: 'manager@example.com',
+        email: 'admin@example.com',
         password: 'wrong-password',
       },
     });
@@ -120,7 +122,7 @@ describe('auth routes', () => {
       authDependencies: {
         signInWithPassword: vi.fn().mockResolvedValue({
           userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
+          email: 'admin@example.com',
           accessToken: 'access-token',
           refreshToken: 'refresh-token',
           tokenType: 'bearer',
@@ -137,7 +139,7 @@ describe('auth routes', () => {
       method: 'POST',
       path: '/api/v1/auth/login',
       body: {
-        email: 'manager@example.com',
+        email: 'admin@example.com',
         password: 'secret-password',
       },
     });
@@ -163,7 +165,7 @@ describe('auth routes', () => {
       method: 'POST',
       path: '/api/v1/auth/login',
       body: {
-        email: 'manager@example.com',
+        email: 'admin@example.com',
         password: 'secret-password',
       },
     });
@@ -203,7 +205,7 @@ describe('auth routes', () => {
       authDependencies: {
         refreshAuthSession: vi.fn().mockResolvedValue({
           userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
+          email: 'admin@example.com',
           accessToken: 'new-access-token',
           refreshToken: 'new-refresh-token',
           tokenType: 'bearer',
@@ -212,9 +214,9 @@ describe('auth routes', () => {
         }),
         getProfileByUserId: vi.fn().mockResolvedValue({
           id: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
-          name: 'Manager',
-          role: 'MANAGER',
+          email: 'admin@example.com',
+          name: 'Admin',
+          role: 'ADMIN',
         }),
       },
     });
@@ -239,9 +241,9 @@ describe('auth routes', () => {
         expiresAt: '2026-04-07T17:00:00.000Z',
         user: {
           id: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
-          name: 'Manager',
-          role: 'MANAGER',
+          email: 'admin@example.com',
+          name: 'Admin',
+          role: 'ADMIN',
         },
       },
     });
@@ -275,7 +277,7 @@ describe('auth routes', () => {
       authDependencies: {
         refreshAuthSession: vi.fn().mockResolvedValue({
           userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
+          email: 'admin@example.com',
           accessToken: 'new-access-token',
           refreshToken: 'new-refresh-token',
           tokenType: 'bearer',
@@ -433,7 +435,7 @@ describe('auth routes', () => {
       authDependencies: {
         verifyAccessToken: vi.fn().mockResolvedValue({
           userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
+          email: 'admin@example.com',
         }),
         getProfileByUserId: vi
           .fn()
@@ -456,13 +458,13 @@ describe('auth routes', () => {
       authDependencies: {
         verifyAccessToken: vi.fn().mockResolvedValue({
           userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
+          email: 'admin@example.com',
         }),
         getProfileByUserId: vi.fn().mockResolvedValue({
           id: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
-          name: 'Manager',
-          role: 'MANAGER',
+          email: 'admin@example.com',
+          name: 'Admin',
+          role: 'ADMIN',
         }),
       },
     });
@@ -478,9 +480,9 @@ describe('auth routes', () => {
       message: 'Authenticated user retrieved',
       data: {
         id: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-        email: 'manager@example.com',
-        name: 'Manager',
-        role: 'MANAGER',
+        email: 'admin@example.com',
+        name: 'Admin',
+        role: 'ADMIN',
       },
     });
   });

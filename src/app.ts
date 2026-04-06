@@ -87,11 +87,11 @@ export const createApp = ({
     });
 
     app.get(
-      '/_test/manager',
+      '/_test/admin',
       authenticate,
-      authorize('MANAGER'),
+      authorize('ADMIN'),
       (request: Request, response: Response) => {
-        return sendSuccess(response, 'Manager request accepted', {
+        return sendSuccess(response, 'Admin request accepted', {
           user: request.auth ?? null,
         });
       }

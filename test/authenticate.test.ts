@@ -83,7 +83,7 @@ describe('authorization middleware', () => {
     const app = express();
 
     app.get(
-      '/manager',
+      '/admin',
       createAuthenticate({
         verifyAccessToken: vi.fn().mockResolvedValue({
           userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
@@ -96,7 +96,7 @@ describe('authorization middleware', () => {
           role: 'SUPERVISOR',
         }),
       }),
-      authorize('MANAGER'),
+      authorize('ADMIN'),
       (_request, response) => {
         return sendSuccess(response, 'ok', { ok: true });
       }
@@ -104,7 +104,7 @@ describe('authorization middleware', () => {
     app.use(errorHandler);
 
     const result = await invokeApp(app, {
-      path: '/manager',
+      path: '/admin',
       headers: { authorization: 'Bearer valid-token' },
     });
 

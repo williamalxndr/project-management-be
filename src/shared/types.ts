@@ -1,6 +1,6 @@
 import type { Request } from 'express';
 
-export const APP_ROLES = ['ADMIN', 'MANAGER', 'SUPERVISOR', 'WORKER'] as const;
+export const APP_ROLES = ['ADMIN', 'SUPERVISOR', 'WORKER'] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
 

@@ -128,9 +128,9 @@ const sessionExample = {
   expiresAt: '2026-04-07T16:00:00.000Z',
   user: {
     id: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-    email: 'manager@example.com',
-    name: 'Manager',
-    role: 'MANAGER',
+    email: 'admin@example.com',
+    name: 'Admin',
+    role: 'ADMIN',
   },
 };
 
@@ -167,7 +167,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
         description:
           'Authenticates a pre-registered user through Supabase Auth, then resolves the matching application profile from the profiles table.',
         requestBody: createJsonRequestBody(loginRequestSchema, {
-          email: 'manager@example.com',
+          email: 'admin@example.com',
           password: 'secret-password',
         }),
         responses: {

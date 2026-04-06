@@ -36,13 +36,13 @@ describe('app routes', () => {
       authDependencies: {
         verifyAccessToken: vi.fn().mockResolvedValue({
           userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
+          email: 'admin@example.com',
         }),
         getProfileByUserId: vi.fn().mockResolvedValue({
           id: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
-          name: 'Manager',
-          role: 'MANAGER',
+          email: 'admin@example.com',
+          name: 'Admin',
+          role: 'ADMIN',
         }),
       },
     });
@@ -77,13 +77,13 @@ describe('app routes', () => {
       authDependencies: {
         verifyAccessToken: vi.fn().mockResolvedValue({
           userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
+          email: 'admin@example.com',
         }),
         getProfileByUserId: vi.fn().mockResolvedValue({
           id: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
-          name: 'Manager',
-          role: 'MANAGER',
+          email: 'admin@example.com',
+          name: 'Admin',
+          role: 'ADMIN',
         }),
       },
     });
@@ -114,13 +114,13 @@ describe('app routes', () => {
       authDependencies: {
         verifyAccessToken: vi.fn().mockResolvedValue({
           userId: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
+          email: 'admin@example.com',
         }),
         getProfileByUserId: vi.fn().mockResolvedValue({
           id: 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: 'manager@example.com',
-          name: 'Manager',
-          role: 'MANAGER',
+          email: 'admin@example.com',
+          name: 'Admin',
+          role: 'ADMIN',
         }),
       },
     });
@@ -170,19 +170,19 @@ describe('app routes', () => {
       authDependencies: {
         verifyAccessToken: vi.fn().mockImplementation(async (token: string) => ({
           userId:
-            token === 'manager-token'
+            token === 'admin-token'
               ? '6c4527e2-5be2-4db9-ba40-958f9e43a7e6'
               : 'fe19d71b-07d6-44d8-ad88-e398f7f7061f',
-          email: token === 'manager-token' ? 'manager@example.com' : 'supervisor@example.com',
+          email: token === 'admin-token' ? 'admin@example.com' : 'supervisor@example.com',
         })),
         getProfileByUserId: vi.fn().mockImplementation(async (userId: string) => ({
           id: userId,
           email:
             userId === '6c4527e2-5be2-4db9-ba40-958f9e43a7e6'
-              ? 'manager@example.com'
+              ? 'admin@example.com'
               : 'supervisor@example.com',
-          name: userId === '6c4527e2-5be2-4db9-ba40-958f9e43a7e6' ? 'Manager' : 'Supervisor',
-          role: userId === '6c4527e2-5be2-4db9-ba40-958f9e43a7e6' ? 'MANAGER' : 'SUPERVISOR',
+          name: userId === '6c4527e2-5be2-4db9-ba40-958f9e43a7e6' ? 'Admin' : 'Supervisor',
+          role: userId === '6c4527e2-5be2-4db9-ba40-958f9e43a7e6' ? 'ADMIN' : 'SUPERVISOR',
         })),
       },
     });
@@ -191,16 +191,16 @@ describe('app routes', () => {
     expect(unauthorized.status).toBe(401);
 
     const forbidden = await invokeApp(app, {
-      path: '/_test/manager',
+      path: '/_test/admin',
       headers: { authorization: 'Bearer supervisor-token' },
     });
     expect(forbidden.status).toBe(403);
 
     const allowed = await invokeApp(app, {
-      path: '/_test/manager',
-      headers: { authorization: 'Bearer manager-token' },
+      path: '/_test/admin',
+      headers: { authorization: 'Bearer admin-token' },
     });
     expect(allowed.status).toBe(200);
-    expect(allowed.body.data.user.role).toBe('MANAGER');
+    expect(allowed.body.data.user.role).toBe('ADMIN');
   });
 });
