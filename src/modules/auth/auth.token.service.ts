@@ -4,7 +4,11 @@ import { getEnv, type Env } from '../../config/env.js';
 import { HttpError } from '../../shared/errors.js';
 
 import { getVerificationOptions, isSupabaseAuthConfigured } from './auth.config.js';
-import { getLocalAuthUnavailableError } from './auth.errors.js';
+import {
+  INVALID_ACCESS_TOKEN_MESSAGE,
+  getLocalAuthUnavailableError,
+  mapAccessTokenVerificationError,
+} from './auth.errors.js';
 import type { VerifyAccessToken } from './auth.types.js';
 
 export const createSupabaseTokenVerifier = (env: Env = getEnv()): VerifyAccessToken => {
@@ -21,7 +25,7 @@ export const createSupabaseTokenVerifier = (env: Env = getEnv()): VerifyAccessTo
       const { payload } = await jwtVerify(token, jwks, getVerificationOptions(env));
 
       if (!payload.sub) {
-        throw new HttpError('Invalid or expired access token', 401);
+        throw new HttpError(INVALID_ACCESS_TOKEN_MESSAGE, 401);
       }
 
       return {
@@ -29,11 +33,7 @@ export const createSupabaseTokenVerifier = (env: Env = getEnv()): VerifyAccessTo
         email: typeof payload.email === 'string' ? payload.email : null,
       };
     } catch (error) {
-      if (error instanceof HttpError) {
-        throw error;
-      }
-
-      throw new HttpError('Invalid or expired access token', 401);
+      throw mapAccessTokenVerificationError(error);
     }
   };
 };

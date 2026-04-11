@@ -62,6 +62,8 @@ Success response:
 }
 ```
 
+Use `data.accessToken` from this response as the bearer token for protected routes such as `/api/v1/auth/me`.
+
 ### POST /api/v1/auth/refresh
 
 Request body:
@@ -72,7 +74,7 @@ Request body:
 }
 ```
 
-Returns the same session payload shape as login.
+Returns the same session payload shape as login. After a refresh, use the new `data.accessToken` for subsequent protected requests.
 
 ### POST /api/v1/auth/logout
 
@@ -103,6 +105,8 @@ Protected backend requests must include:
 
 `Authorization: Bearer <supabase_access_token>`
 
+Use the `data.accessToken` returned by login or refresh here. Do not send the `refreshToken`.
+
 Returns the authenticated user profile resolved from `profiles`.
 
 Success response:
@@ -123,10 +127,19 @@ Success response:
 Failure modes:
 
 - `400` invalid request body for login, refresh, or logout
-- `401` invalid credentials, invalid/expired session tokens, or missing/malformed bearer token
+- `401` invalid credentials, invalid/expired access token, invalid/expired session tokens, or missing/malformed bearer token
+- `502` Supabase auth or JWKS verification request failed upstream
 - `403` valid Supabase identity with no matching `profiles` row
 - `503` Supabase auth unavailable in local development because backend configuration is missing
 - `503` legacy `MANAGER` profiles detected and must be migrated to `ADMIN`
+
+### Troubleshooting `/api/v1/auth/me`
+
+If login returns `200` but `/api/v1/auth/me` returns `401 "Invalid or expired access token"`:
+
+- make sure the `Authorization` header uses the full `data.accessToken` from login
+- do not send the `refreshToken`
+- do not send a shortened or manually copied partial token
 
 ## Swagger
 

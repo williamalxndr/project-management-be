@@ -15,31 +15,29 @@ export interface ReadinessDependencies {
   supabase?: SupabaseClient;
 }
 
-const LEGACY_ROLE_SCAN_PAGE_SIZE = 1000;
+const getReadinessErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message?: unknown }).message);
+  }
+
+  return 'Unknown readiness check failure';
+};
 
 const countLegacyManagerProfiles = async (client: SupabaseClient): Promise<number> => {
-  let from = 0;
-  let legacyCount = 0;
+  const { count, error } = await client
+    .from('profiles')
+    .select('*', { count: 'exact', head: true })
+    .eq('role', 'MANAGER');
 
-  while (true) {
-    const { data, error } = await client
-      .from('profiles')
-      .select('role')
-      .range(from, from + LEGACY_ROLE_SCAN_PAGE_SIZE - 1);
-
-    if (error) {
-      throw error;
-    }
-
-    const rows = data ?? [];
-    legacyCount += rows.filter((row) => row.role === 'MANAGER').length;
-
-    if (rows.length < LEGACY_ROLE_SCAN_PAGE_SIZE) {
-      return legacyCount;
-    }
-
-    from += LEGACY_ROLE_SCAN_PAGE_SIZE;
+  if (error) {
+    throw error;
   }
+
+  return count ?? 0;
 };
 
 export const createReadinessService = ({
@@ -88,8 +86,7 @@ export const createReadinessService = ({
             storage: 'placeholder',
           },
           errors: {
-            database:
-              error instanceof Error ? error.message : 'Unknown readiness check failure',
+            database: getReadinessErrorMessage(error),
           },
         };
       }

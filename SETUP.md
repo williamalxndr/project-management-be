@@ -1,5 +1,9 @@
 # Backend Supabase Setup
 
+## 0. Runtime Requirement
+
+Use Node.js 20 or newer. The backend package declares `node >=20`, and linting is expected to run on Node 20 in CI.
+
 ## 1. Configure Environment Variables
 
 Copy `.env.example` to `.env` and set:
@@ -74,5 +78,10 @@ Then verify:
 - `POST /api/v1/auth/login` returns access and refresh tokens for a pre-registered user
 - `POST /api/v1/auth/refresh` returns rotated session tokens
 - `POST /api/v1/auth/logout` revokes the current refresh token
-- `GET /api/v1/auth/me` returns the current user when called with `Authorization: Bearer <supabase_access_token>`
+- `GET /api/v1/auth/me` returns the current user when called with `Authorization: Bearer <login_or_refresh_data.accessToken>`
 - `GET /docs` opens Swagger UI for the implemented backend routes
+
+Troubleshooting:
+
+- If `/api/v1/auth/me` returns `401 Invalid or expired access token`, make sure you pasted the full `data.accessToken` from login or refresh.
+- Do not use the `refreshToken` in the `Authorization` header.

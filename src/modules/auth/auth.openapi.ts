@@ -9,6 +9,7 @@ import {
 
 import {
   AUTH_UNAVAILABLE_ENV_HINT,
+  SUPABASE_AUTH_REQUEST_FAILED_MESSAGE,
   LEGACY_PROFILE_ROLE_HINT,
   LEGACY_PROFILE_ROLE_MESSAGE,
   LOCAL_AUTH_UNAVAILABLE_MESSAGE,
@@ -149,6 +150,16 @@ const createAuthUnavailableResponse = () => {
   );
 };
 
+const createAuthUpstreamFailureResponse = () => {
+  return createErrorResponse(
+    'Supabase authentication request failed',
+    SUPABASE_AUTH_REQUEST_FAILED_MESSAGE,
+    {
+      auth: 'Supabase auth or JWKS request failed',
+    }
+  );
+};
+
 const createLegacyRoleMigrationResponse = () => {
   return createErrorResponse('Legacy profile role requires migration', LEGACY_PROFILE_ROLE_MESSAGE, {
     role: LEGACY_PROFILE_ROLE_HINT,
@@ -176,7 +187,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
         tags: ['Auth'],
         summary: 'Login with email and password',
         description:
-          'Authenticates a pre-registered user through Supabase Auth, then resolves the matching application profile from the profiles table.',
+          'Authenticates a pre-registered user through Supabase Auth, then resolves the matching application profile from the profiles table. Use the returned data.accessToken as the Bearer token for protected backend requests.',
         requestBody: createJsonRequestBody(loginRequestSchema, {
           email: 'admin@example.com',
           password: 'secret-password',
@@ -195,6 +206,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
             email: 'Invalid email address',
           }),
           401: createErrorResponse('Invalid credentials', 'Invalid email or password'),
+          502: createAuthUpstreamFailureResponse(),
           403: createErrorResponse('User profile not found', 'User profile not found'),
           503: createLegacyRoleMigrationResponse(),
         },
@@ -205,7 +217,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
         tags: ['Auth'],
         summary: 'Refresh an authenticated session',
         description:
-          'Rotates the provided refresh token through Supabase Auth and returns a new backend auth payload with the resolved application profile.',
+          'Rotates the provided refresh token through Supabase Auth and returns a new backend auth payload with the resolved application profile. Use the refreshed data.accessToken for subsequent protected requests.',
         requestBody: createJsonRequestBody(refreshRequestSchema, {
           refreshToken: 'refresh-token',
         }),
@@ -231,6 +243,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
             'Invalid refresh token',
             'Invalid or expired refresh token'
           ),
+          502: createAuthUpstreamFailureResponse(),
           403: createErrorResponse('User profile not found', 'User profile not found'),
           503: createLegacyRoleMigrationResponse(),
         },
@@ -241,7 +254,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
         tags: ['Auth'],
         summary: 'Logout the current session',
         description:
-          'Revokes the current refresh token through Supabase Auth. The access token remains valid until it expires naturally.',
+          'Revokes the current refresh token through Supabase Auth. Supply the current accessToken and refreshToken from the active session. The access token remains valid until it expires naturally.',
         requestBody: createJsonRequestBody(logoutRequestSchema, {
           accessToken: 'eyJhbGciOi...',
           refreshToken: 'refresh-token',
@@ -265,6 +278,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
             'Invalid session tokens',
             'Invalid or expired session tokens'
           ),
+          502: createAuthUpstreamFailureResponse(),
           503: createAuthUnavailableResponse(),
         },
       },
@@ -274,7 +288,7 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
         tags: ['Auth'],
         summary: 'Get the authenticated user profile',
         description:
-          'Validates the supplied Supabase access token and returns the matching application profile from the profiles table.',
+          'Validates the supplied Supabase access token and returns the matching application profile from the profiles table. Use the login or refresh response data.accessToken here, not the refreshToken.',
         security: [{ bearerAuth: [] }],
         responses: {
           200: createJsonResponse(
@@ -286,7 +300,11 @@ export const buildAuthOpenApiSection = (): AuthOpenApiSection => ({
               data: sessionExample.user,
             }
           ),
-          401: createErrorResponse('Authentication required', 'Authentication required'),
+          401: createErrorResponse(
+            'Authentication required or invalid access token',
+            'Invalid or expired access token'
+          ),
+          502: createAuthUpstreamFailureResponse(),
           403: createErrorResponse('User profile not found', 'User profile not found'),
           503: createLegacyRoleMigrationResponse(),
         },

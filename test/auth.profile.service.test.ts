@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { describe, expect, it, vi } from 'vitest';
 
 import { LEGACY_PROFILE_ROLE_HINT, LEGACY_PROFILE_ROLE_MESSAGE } from '../src/modules/auth/auth.errors.js';
@@ -13,7 +14,7 @@ const createProfilesClient = (result: { data: unknown; error: { message: string 
         }),
       }),
     }),
-  }) as any;
+  }) as unknown as SupabaseClient;
 
 describe('createGetProfileByUserId', () => {
   it('returns a parsed profile for supported roles', async () => {

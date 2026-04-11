@@ -48,6 +48,7 @@ describe('swagger docs', () => {
       paths: {
         '/api/v1/auth/login': {
           post: {
+            description: expect.stringContaining('data.accessToken'),
             requestBody: {
               content: {
                 'application/json': {
@@ -57,6 +58,16 @@ describe('swagger docs', () => {
                 },
               },
             },
+            responses: {
+              502: {
+                description: 'Supabase authentication request failed',
+              },
+            },
+          },
+        },
+        '/api/v1/auth/me': {
+          get: {
+            description: expect.stringContaining('not the refreshToken'),
           },
         },
       },
