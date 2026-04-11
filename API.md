@@ -2,7 +2,7 @@
 
 ## Standard Response
 
-### Success
+Success:
 
 ```json
 {
@@ -12,7 +12,7 @@
 }
 ```
 
-### Error
+Error:
 
 ```json
 {
@@ -26,12 +26,12 @@
 
 ## Authentication
 
-Authentication is handled through backend-owned auth endpoints backed by Supabase Auth.
-Users are pre-registered in Supabase Auth and must also have a matching row in `profiles`.
+Authentication is backend-owned and backed by Supabase Auth.
+Users must exist in Supabase Auth and have a matching row in `profiles`.
 
-### POST /api/v1/auth/login
+### `POST /api/v1/auth/login`
 
-Request body:
+Request:
 
 ```json
 {
@@ -40,33 +40,19 @@ Request body:
 }
 ```
 
-Success response:
+Returns:
+- `accessToken`
+- `refreshToken`
+- `tokenType`
+- `expiresIn`
+- `expiresAt`
+- resolved `user` profile
 
-```json
-{
-  "success": true,
-  "message": "Authenticated session created",
-  "data": {
-    "accessToken": "eyJhbGciOi...",
-    "refreshToken": "refresh-token",
-    "tokenType": "bearer",
-    "expiresIn": 3600,
-    "expiresAt": "2026-04-07T16:00:00.000Z",
-    "user": {
-      "id": "fe19d71b-07d6-44d8-ad88-e398f7f7061f",
-      "email": "admin@example.com",
-      "name": "Admin",
-      "role": "ADMIN"
-    }
-  }
-}
-```
+Use `data.accessToken` for protected requests.
 
-Use `data.accessToken` from this response as the bearer token for protected routes such as `/api/v1/auth/me`.
+### `POST /api/v1/auth/refresh`
 
-### POST /api/v1/auth/refresh
-
-Request body:
+Request:
 
 ```json
 {
@@ -74,11 +60,12 @@ Request body:
 }
 ```
 
-Returns the same session payload shape as login. After a refresh, use the new `data.accessToken` for subsequent protected requests.
+Returns the same session payload shape as login.
+After refresh, use the new `data.accessToken`.
 
-### POST /api/v1/auth/logout
+### `POST /api/v1/auth/logout`
 
-Request body:
+Request:
 
 ```json
 {
@@ -87,7 +74,7 @@ Request body:
 }
 ```
 
-Success response:
+Returns:
 
 ```json
 {
@@ -99,70 +86,26 @@ Success response:
 }
 ```
 
-### GET /api/v1/auth/me
+### `GET /api/v1/auth/me`
 
-Protected backend requests must include:
+Header:
 
-`Authorization: Bearer <supabase_access_token>`
+`Authorization: Bearer <accessToken>`
 
-Use the `data.accessToken` returned by login or refresh here. Do not send the `refreshToken`.
+Use the full `data.accessToken` from login or refresh.
+Do not use the `refreshToken`.
 
-Returns the authenticated user profile resolved from `profiles`.
+Returns the authenticated user profile from `profiles`.
 
-Success response:
-
-```json
-{
-  "success": true,
-  "message": "Authenticated user retrieved",
-  "data": {
-    "id": "fe19d71b-07d6-44d8-ad88-e398f7f7061f",
-    "email": "admin@example.com",
-    "name": "Admin",
-    "role": "ADMIN"
-  }
-}
-```
-
-Failure modes:
-
-- `400` invalid request body for login, refresh, or logout
-- `401` invalid credentials, invalid/expired access token, invalid/expired session tokens, or missing/malformed bearer token
-- `502` Supabase auth or JWKS verification request failed upstream
+Common auth failures:
+- `400` invalid login, refresh, or logout body
+- `401` invalid credentials, invalid/expired token, or missing/malformed bearer header
 - `403` valid Supabase identity with no matching `profiles` row
-- `503` Supabase auth unavailable in local development because backend configuration is missing
-- `503` legacy `MANAGER` profiles detected and must be migrated to `ADMIN`
+- `502` Supabase auth or JWKS verification failed upstream
+- `503` local auth is disabled or legacy `MANAGER` rows still need migration
 
-### Troubleshooting `/api/v1/auth/me`
 
-If login returns `200` but `/api/v1/auth/me` returns `401 "Invalid or expired access token"`:
+## Docs
 
-- make sure the `Authorization` header uses the full `data.accessToken` from login
-- do not send the `refreshToken`
-- do not send a shortened or manually copied partial token
-
-## Swagger
-
-When the backend is running, Swagger UI is available at:
-
-- `GET /docs`
-- raw OpenAPI JSON: `GET /docs/openapi.json`
-
-The Swagger document currently covers the routes that are actually implemented in the Express app.
-
-## Current Route Baseline
-
-Implemented now:
-
-- `POST /api/v1/auth/login`
-- `POST /api/v1/auth/refresh`
-- `POST /api/v1/auth/logout`
-- `GET /health`
-- `GET /ready`
-- `GET /api/v1/auth/me`
-
-Planned next:
-
-- project and task creation for authenticated `ADMIN` users
-- progress submission for authenticated `SUPERVISOR` users
-- approvals and rejections for authenticated `ADMIN` users
+- Swagger UI: `GET /docs`
+- OpenAPI JSON: `GET /docs/openapi.json`
